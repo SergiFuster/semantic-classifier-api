@@ -1,9 +1,10 @@
 from fastapi import FastAPI
+from setfit import SetFitModel
 from pydantic import BaseModel
-import joblib  # Cambia a pickle si usaste ese formato
+import uvicorn
 
 # Cargar el modelo
-model = joblib.load("modelo.pkl")  # Cambia el nombre del archivo según corresponda
+model = SetFitModel.from_pretrained("sergifusterdura/dailynoteclassifier-setfit-v1.5-16-shot")
 
 # Definir la aplicación FastAPI
 app = FastAPI()
@@ -16,5 +17,8 @@ class TextInput(BaseModel):
 @app.post("/classify/")
 def classify(input_data: TextInput):
     text = input_data.text
-    prediction = model.predict([text])
-    return {"text": text, "prediction": prediction[0]}
+    prediction = model(text)
+    return {"text": text, "prediction": prediction}
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)
